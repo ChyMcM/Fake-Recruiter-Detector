@@ -1,7 +1,7 @@
 # models.py - Pydantic request/response models for the /analyze endpoint
 
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 
 class AnalyzeRequest(BaseModel):
@@ -20,3 +20,6 @@ class AnalyzeResponse(BaseModel):
     level: str          # "Low", "Medium", or "High"
     flags: List[str]    # human-readable flag descriptions
     highlights: List[Highlight]  # suspicious phrases for UI highlighting
+    ai_used: bool = False
+    ai_score: Optional[int] = None
+    ai_summary: Optional[str] = None

@@ -76,6 +76,23 @@ Each rule carries a weighted value contributing to the final risk score.
 
 Future versions may integrate machine learning (TF-IDF + logistic regression) for hybrid scoring.
 
+🤖 Optional OpenAI-Assisted Screening
+
+The backend supports optional OpenAI analysis to improve scam detection quality on nuanced messages.
+
+- Rule-based scoring always runs.
+- If `OPENAI_API_KEY` is set, the API also runs an OpenAI pass and blends scores:
+  - Final score = 70% rule score + 30% AI score
+- Response includes:
+  - `ai_used` (boolean)
+  - `ai_score` (0-100, optional)
+  - `ai_summary` (optional short rationale)
+
+Environment variables (backend):
+
+- `OPENAI_API_KEY` = your OpenAI API key
+- `OPENAI_MODEL` = model name (default: `gpt-4.1-mini`)
+
 🛠 Tech Stack
 
 Backend:
@@ -169,3 +186,53 @@ Frontend-backend integration
 Agile project management workflow
 
 It was built to solve a real-world problem while showcasing scalable and modular system design principles.
+
+☸️ Kubernetes (K8s) Setup
+
+Minimal Kubernetes manifests are available in `fake-recruiter-detector/k8s`.
+
+Included resources:
+
+- Namespace: `fake-recruiter-detector`
+- Backend Deployment + Service
+- Frontend Deployment + Service
+- Ingress routing:
+  - `/` -> frontend
+  - `/analyze` -> backend
+
+1) Build Docker images
+
+From the `fake-recruiter-detector` folder:
+
+```bash
+docker build -t fake-recruiter-backend:latest ./backend
+docker build -t fake-recruiter-frontend:latest ./frontend
+```
+
+2) Apply manifests
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/
+```
+
+3) Access the app
+
+- If using Docker Desktop Kubernetes with nginx ingress enabled, open the ingress address from:
+
+```bash
+kubectl get ingress -n fake-recruiter-detector
+```
+
+- For quick local access (without ingress), port-forward frontend service:
+
+```bash
+kubectl port-forward svc/frontend 8080:80 -n fake-recruiter-detector
+```
+
+Then open `http://localhost:8080`.
+
+Notes:
+
+- Make sure an ingress controller (for example ingress-nginx) is installed before applying `k8s/ingress.yaml`.
+- Image names in manifests are currently local tags (`fake-recruiter-backend:latest`, `fake-recruiter-frontend:latest`). For cloud clusters, push images to a registry and update image values in deployments.
