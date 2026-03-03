@@ -1,9 +1,12 @@
 import json
+import logging
 import os
 from dataclasses import dataclass
 from typing import List, Optional
 
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -22,12 +25,21 @@ def _safe_int(value: object, default: int = 0) -> int:
 
 
 def analyze_with_openai(text: str) -> Optional[AIAnalysis]:
+    """Analyze text with OpenAI. Returns None on API key missing or critical failures."""
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
+        logger.warning(
+            "OPENAI_API_KEY not set; AI screening is disabled. "
+            "Set OPENAI_API_KEY to enable advanced fraud detection."
+        )
         return None
 
     model = os.getenv("OPENAI_MODEL", "gpt-4.1-mini")
-    client = OpenAI(api_key=api_key)
+    try:
+        client = OpenAI(api_key=api_key)
+    except Exception as e:
+        logger.error(f"Failed to initialize OpenAI client: {e}")
+        return None
 
     system_prompt = (
         "You are a fraud screening assistant for recruiter messages. "
@@ -41,23 +53,26 @@ def analyze_with_openai(text: str) -> Optional[AIAnalysis]:
     )
 
     try:
-        response = client.responses.create(
+        response = client.chat.completions.create(
             model=model,
-            input=[
+            messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt},
             ],
         )
-    except Exception:
+    except Exception as e:
+        logger.warning(f"OpenAI API call failed (will use rules-only): {e}")
         return None
 
-    raw = (response.output_text or "").strip()
+    raw = (response.choices[0].message.content or "").strip()
     if not raw:
+        logger.warning("OpenAI returned empty response")
         return None
 
     try:
         parsed = json.loads(raw)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        logger.warning(f"Failed to parse OpenAI response JSON: {e}")
         return None
 
     score = max(0, min(100, _safe_int(parsed.get("ai_score"), 0)))

@@ -1,4 +1,4 @@
-/* index.css - Global styles */
+/* index.css - Global styles with pink & green theme */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -7,7 +7,7 @@
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background: #f0f4f8;
+  background: linear-gradient(135deg, #fdf2f8 0%, #f0fdf4 100%);
   color: #1a202c;
   min-height: 100vh;
 }

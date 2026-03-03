@@ -20,6 +20,6 @@ class AnalyzeResponse(BaseModel):
     level: str          # "Low", "Medium", or "High"
     flags: List[str]    # human-readable flag descriptions
     highlights: List[Highlight]  # suspicious phrases for UI highlighting
-    ai_used: bool = False
-    ai_score: Optional[int] = None
-    ai_summary: Optional[str] = None
+    ai_used: bool = False  # whether AI analysis was performed
+    ai_score: Optional[int] = None  # optional AI score if available
+    ai_summary: Optional[str] = None  # optional AI summary if available

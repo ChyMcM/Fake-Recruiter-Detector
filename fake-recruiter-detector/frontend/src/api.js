@@ -20,5 +20,7 @@ export async function analyzeMessage(text) {
     throw new Error(`API error ${response.status}: ${error}`);
   }
 
-  return response.json();
+  const analyzeResult = await response.json();
+
+  return analyzeResult;
 }
